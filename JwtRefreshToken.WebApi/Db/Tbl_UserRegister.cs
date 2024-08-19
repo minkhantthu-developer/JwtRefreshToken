@@ -1,7 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace JwtRefreshToken.WebApi.Db
 {
+    [Table("Tbl_UserRegister")]
     public class Tbl_UserRegister
     {
         [Key]
@@ -15,5 +17,7 @@ namespace JwtRefreshToken.WebApi.Db
 
         [Required]
         public string? Password { get; set; }
+
+        public string RefreshToken { get; set; }
     }
 }
