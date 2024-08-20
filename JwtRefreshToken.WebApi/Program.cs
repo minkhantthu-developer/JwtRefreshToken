@@ -1,7 +1,7 @@
-using JwtRefreshToken.WebApi.Db;
-using JwtRefreshToken.WebApi.Feature.User;
-using JwtRefreshToken.WebApi.Repository;
+using JwtRefreshToken.WebApi.Features.User;
+using JwtRefreshToken.WebApi.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
@@ -9,16 +9,24 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddDbContext<AppDbContext>(opt =>
+
+builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    opt.UseSqlServer(builder.Configuration.GetConnectionString("DbConnection"));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DbConnection"));
 });
+
+builder.Services.AddIdentity<IdentityUser,IdentityRole>(options =>
+{
+    options.Password.RequireUppercase = true;
+    options.Password.RequireDigit = true;
+    options.SignIn.RequireConfirmedEmail = true;
+}).AddEntityFrameworkStores<AppDbContext>().AddDefaultTokenProviders();
 
 builder.Services.AddAuthentication(x => {
     x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 }).AddJwtBearer(o => {
-    var Key = Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"]);
+    var Key = Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"]!);
     o.SaveToken = true;
     o.TokenValidationParameters = new TokenValidationParameters
     {
@@ -26,23 +34,23 @@ builder.Services.AddAuthentication(x => {
         ValidateAudience = false,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["JWT:Issuer"],
-        ValidAudience = builder.Configuration["JWT:Audience"],
+        ValidIssuer = builder.Configuration["JWT:Issuer"]!,
+        ValidAudience = builder.Configuration["JWT:Audience"]!,
         IssuerSigningKey = new SymmetricSecurityKey(Key),
         ClockSkew = TimeSpan.Zero
     };
+
 });
 
 builder.Services.AddSingleton<IJWTManagerRepository, JWTManagerRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "RefreshTokenDemo", Version = "v1" });
 });
+
 
 
 
