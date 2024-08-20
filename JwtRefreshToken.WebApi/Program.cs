@@ -13,7 +13,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DbConnection"));
-});
+},ServiceLifetime.Transient,ServiceLifetime.Transient);
 
 builder.Services.AddIdentity<IdentityUser,IdentityRole>(options =>
 {

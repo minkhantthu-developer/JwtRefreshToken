@@ -4,9 +4,9 @@
     {
         Task<bool> IsValidUserAsync(UserLogin userLogin);
 
-        UserRefreshToken AddUserRefreshToken(UserRefreshToken user);
+        Task<UserRefreshToken> AddUserRefreshToken(UserRefreshToken user);
 
-        UserRefreshToken GetSavedUserRefreshToken(string userName, string refreshTokn);
+        Task<UserRefreshToken> GetSavedUserRefreshToken(string userName, string refreshTokn);
 
         Task DeleteRefreshToken(string userName, string refreshTokn);
     }

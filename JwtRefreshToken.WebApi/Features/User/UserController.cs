@@ -20,6 +20,19 @@ namespace JwtRefreshToken.WebApi.Features.User
             _userService = userService;
         }
 
+        [HttpGet]
+        public List<string> Get()
+        {
+            var usersList = new List<string>
+  {
+   "Shubham Chauhan",
+   "Kunal Parmar",
+   "Dipak Kushwaha"
+  };
+
+            return usersList;
+        }
+
         [AllowAnonymous]
         [HttpPost]
         [Route("authenticate-user")]
@@ -45,21 +58,21 @@ namespace JwtRefreshToken.WebApi.Features.User
                 UserName = usersdata.Email
             };
 
-            _userService.AddUserRefreshToken(obj);
+            await _userService.AddUserRefreshToken(obj);
             return Ok(token);
         }
 
         [AllowAnonymous]
         [HttpPost]
         [Route("refresh-token")]
-        public IActionResult Refresh(Tokens token)
+        public async Task<IActionResult> Refresh(Tokens token)
         {
             var principal = _jwtManager.GetClaimsPrincipalFromExpireToken(token.AcessToken);
             var username = principal.Identity?.Name;
 
-            var savedRefreshToken = _userService.GetSavedUserRefreshToken(username, token.RefreshToken);
+            var savedRefreshToken =await _userService.GetSavedUserRefreshToken(username, token.RefreshToken);
 
-            if (savedRefreshToken.RefreshToken != token.RefreshToken)
+            if (savedRefreshToken.RefreshToken!= token.RefreshToken)
             {
                 return Unauthorized("Invalid attempt!");
             }
@@ -74,11 +87,12 @@ namespace JwtRefreshToken.WebApi.Features.User
             UserRefreshToken obj = new UserRefreshToken
             {
                 RefreshToken = newJwtToken.RefreshToken,
-                UserName = username
+                UserName = username,
+                IsActive=true
             };
 
-            _userService.DeleteRefreshToken(username, token.RefreshToken);
-            _userService.AddUserRefreshToken(obj);
+            await _userService.DeleteRefreshToken(username, token.RefreshToken);
+            await _userService.AddUserRefreshToken(obj);
 
             return Ok(newJwtToken);
         }
